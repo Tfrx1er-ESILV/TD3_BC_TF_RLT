@@ -43,3 +43,10 @@ def get_bid_ask_product(name,direction):
     data = requests.get("https://api.pro.coinbase.com/products/"+name+"/book").json()
     data = float(data[direction][0][0])
     return data
+
+#Renvoie la sequence, le bid et ask pour un couple donné
+#Exemple :
+#name = "ETH-EUR"
+def export_order_book(name):
+    data = requests.get("https://api.pro.coinbase.com//products/"+name+"/book").json()
+    return data
