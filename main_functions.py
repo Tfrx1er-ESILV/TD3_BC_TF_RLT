@@ -1,5 +1,8 @@
 import csv , os
-os.system("clear")
+import requests
+import json
+import time
+#os.system("clear")
 
 #Lecture du fichier log_id
 #Renvoie un tab de deux string [0] = id , [1] = pwd
@@ -22,3 +25,6 @@ def get_all_products():
         if not element['base_currency'] in _return:
             _return.append(element['base_currency'])
     return _return
+
+array = get_all_products()
+print(array)
