@@ -27,7 +27,13 @@ def get_all_products():
     return _return
 
 #Renvoie tout les id sous forme de tab de string
+#Renvoie tout les id sous forme de tab de string
 def get_all_products_id():
+    _return = []
+    data = requests.get("https://api.pro.coinbase.com/products").json()
+    for element in data:
+        _return.append(element['id'])
+    return _return
 
 #Renvoie le bid ou le ask en float
 #Exemple :
