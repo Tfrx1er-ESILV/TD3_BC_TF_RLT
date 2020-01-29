@@ -2,6 +2,7 @@ import csv , os
 os.system("clear")
 
 #Lecture du fichier log_id
+#Renvoie un tab de deux string [0] = id , [1] = pwd
 def import_log():
     log = []
     with open('log_id.csv', newline='') as f:
@@ -12,5 +13,13 @@ def import_log():
     
     return [log[2],log[3]]   
 
+#Renvoie tout les couples tradé sur Coinbase pro
+#Renvoie un tab de string
+def get_all_products():
+    _return = []
+    data = requests.get("https://api.pro.coinbase.com/products").json()
+    for element in data:
+        _return.append(element['id'])
+    return _return
 "ID","Password"
 "1032","hiuzhciuv"
