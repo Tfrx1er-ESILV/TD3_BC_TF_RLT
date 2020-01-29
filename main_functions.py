@@ -19,7 +19,6 @@ def get_all_products():
     _return = []
     data = requests.get("https://api.pro.coinbase.com/products").json()
     for element in data:
-        _return.append(element['id'])
+        if not element['base_currency'] in _return:
+            _return.append(element['base_currency'])
     return _return
-"ID","Password"
-"1032","hiuzhciuv"
