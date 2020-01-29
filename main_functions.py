@@ -29,7 +29,7 @@ def get_all_products():
 #Renvoie tout les id sous forme de tab de string
 def get_all_products_id():
 
-#Renvoie le bid ou le ask
+#Renvoie le bid ou le ask en float
 #Exemple :
 #name = "ETH-EUR"  direction = "asks" ou "bids"
 def get_bid_ask_product(name,direction):
