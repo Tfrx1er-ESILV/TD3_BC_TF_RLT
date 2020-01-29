@@ -26,5 +26,14 @@ def get_all_products():
             _return.append(element['base_currency'])
     return _return
 
-array = get_all_products()
-print(array)
+#Renvoie tout les id sous forme de tab de string
+def get_all_products_id():
+
+#Renvoie le bid ou le ask
+#Exemple :
+#name = "ETH-EUR"  direction = "asks" ou "bids"
+def get_bid_ask_product(name,direction):
+    _return = []
+    data = requests.get("https://api.pro.coinbase.com/products/"+name+"/book").json()
+    data = float(data[direction][0][0])
+    return data
