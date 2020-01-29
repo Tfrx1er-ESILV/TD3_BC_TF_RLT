@@ -50,3 +50,10 @@ def get_bid_ask_product(name,direction):
 def export_order_book(name):
     data = requests.get("https://api.pro.coinbase.com//products/"+name+"/book").json()
     return data
+
+#Renvoie le time, low, high, open, close, volume 
+#d'une chandelle (historic rates of an asset)
+#Exemple : name = "ETH-EUR", duration = 300
+def refresh_Data_Candles(name,duration):
+    duration = str(duration*60)
+    return requests.get("https://api.pro.coinbase.com/products/"+name+"/candles?granularity="+duration).json()
