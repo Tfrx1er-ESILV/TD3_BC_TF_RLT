@@ -1,8 +1,8 @@
 import csv , os
 import requests
 import json
-import time
-#os.system("clear")
+import time , datetime
+os.system("clear")
 
 #Lecture du fichier log_id
 #Renvoie un tab de deux string [0] = id , [1] = pwd
@@ -51,9 +51,26 @@ def export_order_book(name):
     data = requests.get("https://api.pro.coinbase.com//products/"+name+"/book").json()
     return data
 
+#Prend un epoch time et le converti en ISO8601
+def convertEpochIso8601(time) : 
+    dt = datetime.datetime.utcfromtimestamp(time)
+    iso_format = dt.isoformat() + 'Z'
+    return iso_format
+
 #Renvoie le time, low, high, open, close, volume 
 #d'une chandelle (historic rates of an asset)
 #Exemple : name = "ETH-EUR", duration = 300
 def refresh_Data_Candles(name,duration):
     duration = str(duration*60)
     return requests.get("https://api.pro.coinbase.com/products/"+name+"/candles?granularity="+duration).json()
+
+#Renvoie une candle une tranche de 10 jours de candle
+first_date_computable = 1451606400
+
+def obtain_data_candle(name,time,duration):
+    start = convertEpochIso8601(time)
+    end = convertEpochIso8601(time + 10*24*3600)
+    response = requests.get("https://api.pro.coinbase.com/products/"+name+"/candles?start="+start+"&end="+end+"&granularity="+str(duration)).json()
+    return response
+
+print(obtain_data_candle(name = "BTC-EUR",time = first_date_computable,duration=3600))
