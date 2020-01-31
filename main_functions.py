@@ -59,9 +59,8 @@ def convertEpochIso8601(time) :
 
 #Renvoie le time, low, high, open, close, volume 
 #d'une chandelle (historic rates of an asset)
-#Exemple : name = "ETH-EUR", duration = 300
+#Exemple : name = "ETH-EUR", duration = "300"
 def refresh_Data_Candles(name,duration):
-    duration = str(duration*60)
     return requests.get("https://api.pro.coinbase.com/products/"+name+"/candles?granularity="+duration).json()
 
 #Renvoie une candle une tranche de 10 jours de candle
