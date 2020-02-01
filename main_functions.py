@@ -72,12 +72,14 @@ def refresh_Data_Candles(name,duration):
 #Renvoie une candle une tranche de 10 jours de candle
 first_date_computable = 1451606400
 
+#Récupère les information de candles sur 10 jours
 def obtain_data_candle(name,time,duration):
     start = convertEpochIso8601(time)
     end = convertEpochIso8601(time + 10*24*3600 - 1)
     response = requests.get("https://api.pro.coinbase.com/products/"+name+"/candles?start="+start+"&end="+end+"&granularity="+str(duration)).json()
     return response
 
+#Récupère les candles manquante en cherchant à la minute:30 près
 def obtain_one_candle(name,time,duration):
     start = convertEpochIso8601(time)
     end = convertEpochIso8601(time +100)
@@ -97,3 +99,13 @@ def verifier_integriter_bd(name,max):
     connexion.close()
     return liste_trou
 
+#Extrait la dernière date de récupération des candles
+def get_last_date(database_file):
+    query = "SELECT max(date) FROM Coinbase_BTC_EUR_3600;"
+    connection = sqlite3.connect(database_file)
+    cursor = connection.cursor()
+    cursor.execute(query)
+    results = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return results[0][0]
