@@ -66,10 +66,17 @@ def refresh_Data_Candles(name,duration):
 #Renvoie une candle une tranche de 10 jours de candle
 first_date_computable = 1451606400
 
+#Renvoie une candle une tranche de 10 jours de candle
+first_date_computable = 1451606400
+
 def obtain_data_candle(name,time,duration):
     start = convertEpochIso8601(time)
-    end = convertEpochIso8601(time + 10*24*3600)
+    end = convertEpochIso8601(time + 10*24*3600 - 1)
     response = requests.get("https://api.pro.coinbase.com/products/"+name+"/candles?start="+start+"&end="+end+"&granularity="+str(duration)).json()
     return response
 
-print(obtain_data_candle(name = "BTC-EUR",time = first_date_computable,duration=3600))
+def obtain_one_candle(name,time,duration):
+    start = convertEpochIso8601(time)
+    end = convertEpochIso8601(time +100)
+    response = requests.get("https://api.pro.coinbase.com/products/"+name+"/candles?start="+start+"&end="+end+"&granularity="+str(duration)).json()
+    return response[0]
