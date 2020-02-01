@@ -1,5 +1,6 @@
 #Ignorer le fichier de log
 log_id.csv
+log_id.json
 
 #travail de theo
 part_theo.py

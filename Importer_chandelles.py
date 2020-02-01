@@ -126,8 +126,3 @@ def combler_les_trous_Coinbase_BTC_EUR_3600(liste_trou):
         connexion.close()
     wait = input("Tous est comblé !")
 
-TableName = "Coinbase_BTC_EUR_3600"
-trous = verifier_integriter_bd(name="basededonnees.db",max = 35312)
-print(trous)
-combler_les_trous_Coinbase_BTC_EUR_3600(trous)
-print(trous)
