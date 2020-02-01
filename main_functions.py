@@ -56,7 +56,12 @@ def convertEpochIso8601(time) :
     dt = datetime.datetime.utcfromtimestamp(time)
     iso_format = dt.isoformat() + 'Z'
     return iso_format
-
+    
+#Prend une date en format ISO8601
+def ISO_to_Epoch(date):
+    ref = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+    epoch_time = int((ref - datetime.datetime(1970, 1, 1)).total_seconds())
+    return epoch_time
 #Renvoie le time, low, high, open, close, volume 
 #d'une chandelle (historic rates of an asset)
 #Exemple : name = "ETH-EUR", duration = "300"
@@ -79,4 +84,5 @@ def obtain_one_candle(name,time,duration):
     start = convertEpochIso8601(time)
     end = convertEpochIso8601(time +100)
     response = requests.get("https://api.pro.coinbase.com/products/"+name+"/candles?start="+start+"&end="+end+"&granularity="+str(duration)).json()
+    return response[0]
     return response[0]
