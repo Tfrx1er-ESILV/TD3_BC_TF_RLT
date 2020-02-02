@@ -1,5 +1,6 @@
-from main_functions import obtain_data_candle , obtain_one_candle, verifier_integriter_bd
+from main_functions import obtain_data_candle , obtain_one_candle, verifier_integriter_bd, ISO_to_Epoch, convertEpochIso8601
 import sqlite3
+import requests
 import time
 
 def import_candles():
@@ -126,3 +127,43 @@ def combler_les_trous_Coinbase_BTC_EUR_3600(liste_trou):
         connexion.close()
     wait = input("Tous est comblé !")
 
+################################ Même fonctions mais pour une date de départ donnée ####################################
+
+def more_candles(j,start,end):
+    connexion = sqlite3.connect("basededonnees.db")
+    start_epoch = ISO_to_Epoch(start)
+    #end_epoch = ISO_to_Epoch(end)
+    for i in range(0,j): #0,149
+        start = convertEpochIso8601(start_epoch + i * 10*24*3600) #10 jours
+        end = convertEpochIso8601(start_epoch + i*10*24*3600)
+        data = requests.get("https://api.pro.coinbase.com/products/BTC-EUR/candles?start="+start+"&end="+end+"&granularity=3600").json()
+        print(data)
+        for t in range(0,len(data)): #max == 237 
+            query = "SELECT max(Id) FROM Coinbase_BTC_EUR_3600;"
+            connection = sqlite3.connect("basededonnees.db")
+            cursor = connection.cursor()
+            cursor.execute(query)
+            results = cursor.fetchall()
+            cursor.close()
+            maxi = results[0][0]
+            _id = t+ int(maxi)
+
+            _date = str(data[t][0])
+            _high = data[t][2]
+            _low = data[t][1]
+            _open = data[t][3]
+            _close = data[t][4]
+            _volume = data[t][5]
+            _quotevolume = "NULL"
+            _weightedaverage = "NULL"
+            _sma_7 = "NULL"
+            _ema_7 = "NULL"
+            _sma_30 ="NULL"
+            _ema_30 = "NULL"
+            _sma_200 ="NULL"
+            _ema_200 ="NULL"
+            command = "INSERT INTO Coinbase_BTC_EUR_3600 VALUES("+str(_id)+","+_date+","+str(_high)+","+str(_low)+","+str(_open)+","+str(_close)+","+str(_volume)+","+str(_quotevolume)+","+str(_weightedaverage)+","+str(_sma_7)+","+str(_ema_7)+","+str(_sma_30)+","+str(_ema_30)+","+str(_sma_200)+","+str(_ema_200)+")"
+            connexion.execute(command)
+            connexion.commit()
+
+    connexion.close()

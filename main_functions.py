@@ -6,7 +6,7 @@ os.system("clear")
 import sqlite3
 import json, hmac, hashlib, time, requests, base64
 from requests.auth import AuthBase
-
+from Importer_chandelles import more_candles
 
 #Lecture du fichier log_id
 def import_log():
@@ -57,9 +57,10 @@ def convertEpochIso8601(time) :
     
 #Prend une date en format ISO8601
 def ISO_to_Epoch(date):
-    ref = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+    ref = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%fZ')
     epoch_time = int((ref - datetime.datetime(1970, 1, 1)).total_seconds())
     return epoch_time
+
 #Renvoie le time, low, high, open, close, volume 
 #d'une chandelle (historic rates of an asset)
 #Exemple : name = "ETH-EUR", duration = "300"
@@ -107,6 +108,22 @@ def get_last_date(database_file):
     connection.close()
     return results[0][0]
 
+def auto_update_candles():
+    last_conn_epoch = get_last_date("basededonnees.db")
+    last_conn_iso = convertEpochIso8601(last_conn_epoch)
+    now_conn_iso = datetime.datetime.now().replace(microsecond=0).isoformat() + "Z"
+    now_conn_epoch = ISO_to_Epoch(now_conn_iso)
+    nb_days = (now_conn_epoch - last_conn_epoch)/(60*60*24)
+    if(nb_days>10):
+        j = int(nb_days/10)+1
+        push_new_candles(j,str(last_conn_iso),str(now_conn_iso))
+    if(nb_days<0.042):
+        push_new_candles(0,str(last_conn_iso),str(now_conn_iso))
+    else:
+        push_new_candles(1,str(last_conn_iso),str(now_conn_iso))
+
+def push_new_candles(j,start,end):
+    more_candles(j,start,end)
 
 # Create custom authentication for Exchange
 class CoinbaseExchangeAuth(AuthBase):
