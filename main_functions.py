@@ -108,28 +108,10 @@ def get_last_date(database_file):
     connection.close()
     return results[0][0]
 
-#Récupère la dernière date de bougies et la date d'aujpurd'hui
-#Calcule le nb de jour les séparant 
-#retourne une zone de récupération
-def auto_update_candles():
-    last_conn_epoch = get_last_date("basededonnees.db")
-    last_conn_iso = convertEpochIso8601(last_conn_epoch)
-    now_conn_iso = datetime.datetime.now().replace(microsecond=0).isoformat() + "Z"
-    now_conn_epoch = ISO_to_Epoch(now_conn_iso)
-    nb_days = (now_conn_epoch - last_conn_epoch)/(60*60*24)
-    if(nb_days>10):
-        j = int(nb_days/10)+1
-        more_candles(j,str(last_conn_iso),str(now_conn_iso))
-    if(nb_days<0.042):
-        more_candles(0,str(last_conn_iso),str(now_conn_iso))
-    else:
-        more_candles(1,str(last_conn_iso),str(now_conn_iso))
-
-#Récupère les dernières bougies depuis la dernière connection
-#Les rentres dans la bd
 def more_candles(j,start,end):
     connexion = sqlite3.connect("basededonnees.db")
     start_epoch = ISO_to_Epoch(start)
+    #end_epoch = ISO_to_Epoch(end)
     for i in range(0,j): #0,149
         start = convertEpochIso8601(start_epoch + i * 10*24*3600) #10 jours
         end = convertEpochIso8601(start_epoch + i*10*24*3600)
@@ -165,7 +147,20 @@ def more_candles(j,start,end):
 
     connexion.close()
 
-# Create custom authentication for Exchange
+def auto_update_candles():
+    last_conn_epoch = get_last_date("basededonnees.db")
+    last_conn_iso = convertEpochIso8601(last_conn_epoch)
+    now_conn_iso = datetime.datetime.now().replace(microsecond=0).isoformat() + "Z"
+    now_conn_epoch = ISO_to_Epoch(now_conn_iso)
+    nb_days = (now_conn_epoch - last_conn_epoch)/(60*60*24)
+    if(nb_days>10):
+        j = int(nb_days/10)+1
+        more_candles(j,str(last_conn_iso),str(now_conn_iso))
+    if(nb_days<0.042):
+        more_candles(0,str(last_conn_iso),str(now_conn_iso))
+    else:
+        more_candles(1,str(last_conn_iso),str(now_conn_iso))
+
 class CoinbaseExchangeAuth(AuthBase):
     def __init__(self, api_key, secret_key, passphrase):
         self.api_key = api_key
@@ -174,10 +169,11 @@ class CoinbaseExchangeAuth(AuthBase):
 
     def __call__(self, request):
         timestamp = str(time.time())
-        message = timestamp + request.method + request.path_url + (request.body or '')
+        message = (timestamp + request.method + request.path_url + (request.body or ''))
+        message = message.encode('ascii')
         hmac_key = base64.b64decode(self.secret_key)
         signature = hmac.new(hmac_key, message, hashlib.sha256)
-        signature_b64 = signature.digest().encode('base64').rstrip('\n')
+        signature_b64 = base64.b64encode(signature.digest())
 
         request.headers.update({
             'CB-ACCESS-SIGN': signature_b64,
@@ -188,10 +184,16 @@ class CoinbaseExchangeAuth(AuthBase):
         })
         return request
 
-api_url = 'https://api.pro.coinbase.com/'
-auth = CoinbaseExchangeAuth(import_log()['log'], import_log()['secret'], import_log()['passphrase'])
 
-# Get accounts
-r = requests.get(api_url + 'accounts', auth=auth)
-print(r.json())
-# [{"id": "a1b2c3d4", "balance":...
+def afficherContenuPortefeuille():
+    api_url = 'https://api-public.sandbox.pro.coinbase.com/'
+    auth = CoinbaseExchangeAuth(api_key = import_log()['log'], secret_key = import_log()['secret'], passphrase = import_log()['passphrase'])
+    r = requests.get(api_url + 'accounts', auth=auth)
+    for all in r.json():
+        print(str(all['currency']+" : "+str(all['balance'])))
+
+def getAnOrder():
+    api_url = 'https://api-public.sandbox.pro.coinbase.com/'
+    auth = CoinbaseExchangeAuth(api_key = import_log()['log'], secret_key = import_log()['secret'], passphrase = import_log()['passphrase'])
+    r = requests.delete(api_url + 'orders', auth=auth)
+    print (r.json())
