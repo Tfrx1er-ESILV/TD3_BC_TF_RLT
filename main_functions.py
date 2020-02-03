@@ -6,7 +6,7 @@ os.system("clear")
 import sqlite3
 import json, hmac, hashlib, time, requests, base64
 from requests.auth import AuthBase
-from Importer_chandelles import more_candles
+
 
 #Lecture du fichier log_id
 def import_log():
@@ -108,6 +108,9 @@ def get_last_date(database_file):
     connection.close()
     return results[0][0]
 
+#Récupère la dernière date de bougies et la date d'aujpurd'hui
+#Calcule le nb de jour les séparant 
+#retourne une zone de récupération
 def auto_update_candles():
     last_conn_epoch = get_last_date("basededonnees.db")
     last_conn_iso = convertEpochIso8601(last_conn_epoch)
@@ -116,14 +119,51 @@ def auto_update_candles():
     nb_days = (now_conn_epoch - last_conn_epoch)/(60*60*24)
     if(nb_days>10):
         j = int(nb_days/10)+1
-        push_new_candles(j,str(last_conn_iso),str(now_conn_iso))
+        more_candles(j,str(last_conn_iso),str(now_conn_iso))
     if(nb_days<0.042):
-        push_new_candles(0,str(last_conn_iso),str(now_conn_iso))
+        more_candles(0,str(last_conn_iso),str(now_conn_iso))
     else:
-        push_new_candles(1,str(last_conn_iso),str(now_conn_iso))
+        more_candles(1,str(last_conn_iso),str(now_conn_iso))
 
-def push_new_candles(j,start,end):
-    more_candles(j,start,end)
+#Récupère les dernières bougies depuis la dernière connection
+#Les rentres dans la bd
+def more_candles(j,start,end):
+    connexion = sqlite3.connect("basededonnees.db")
+    start_epoch = ISO_to_Epoch(start)
+    for i in range(0,j): #0,149
+        start = convertEpochIso8601(start_epoch + i * 10*24*3600) #10 jours
+        end = convertEpochIso8601(start_epoch + i*10*24*3600)
+        data = requests.get("https://api.pro.coinbase.com/products/BTC-EUR/candles?start="+start+"&end="+end+"&granularity=3600").json()
+        print(data)
+        for t in range(0,len(data)): #max == 237 
+            query = "SELECT max(Id) FROM Coinbase_BTC_EUR_3600;"
+            connection = sqlite3.connect("basededonnees.db")
+            cursor = connection.cursor()
+            cursor.execute(query)
+            results = cursor.fetchall()
+            cursor.close()
+            maxi = results[0][0]
+            _id = t+ int(maxi)
+
+            _date = str(data[t][0])
+            _high = data[t][2]
+            _low = data[t][1]
+            _open = data[t][3]
+            _close = data[t][4]
+            _volume = data[t][5]
+            _quotevolume = "NULL"
+            _weightedaverage = "NULL"
+            _sma_7 = "NULL"
+            _ema_7 = "NULL"
+            _sma_30 ="NULL"
+            _ema_30 = "NULL"
+            _sma_200 ="NULL"
+            _ema_200 ="NULL"
+            command = "INSERT INTO Coinbase_BTC_EUR_3600 VALUES("+str(_id)+","+_date+","+str(_high)+","+str(_low)+","+str(_open)+","+str(_close)+","+str(_volume)+","+str(_quotevolume)+","+str(_weightedaverage)+","+str(_sma_7)+","+str(_ema_7)+","+str(_sma_30)+","+str(_ema_30)+","+str(_sma_200)+","+str(_ema_200)+")"
+            connexion.execute(command)
+            connexion.commit()
+
+    connexion.close()
 
 # Create custom authentication for Exchange
 class CoinbaseExchangeAuth(AuthBase):
